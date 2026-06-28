@@ -1,0 +1,10 @@
+Metric,Value
+Total structures,200
+Complete successes (HL & LL FOUND),134
+HL failed to find abstract sequence,42
+LL failed after HL success,24
+Time limit (s),1000
+Successes used for stage dominance,134
+Low-level longest (count),101
+High-level longest (count),33
+Interface longest (count),0
