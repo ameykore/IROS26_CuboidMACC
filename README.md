@@ -1,61 +1,181 @@
-Code and test set for Singh et al., "Hierarchical Planner for the cuboid-Multi-Agent Collective Construction Problem," submitted to DARS2024.
+# Cuboid-MACC
 
-# About
-Recent work in planning for cooperative mobile robots to assemble a structure much larger than themselves out of only cubic ($1 \times 1 \times 1$) blocks has been termed "the multi-agent collective construction (MACC) problem." In this work, we create a new planner that solves the MACC problem with cuboid ($n \times 1 \times 1$)  blocks, which we call the cuboid-MACC problem. In doing so, we can now build structures with hollow features. The cuboid blocks introduce new challenges beyond those present in MACC: blocks are no longer rotationally symmetric, and a carried block can collide with other blocks or robots; both features restrict the paths robots can take while carrying blocks. To address cuboid-MACC, we present a novel hierarchical planning approach that handles the maneuverability constraints imposed by cuboid blocks. First, we use $A^*$ to determine a sequence of abstract actions (block placements and removals) to build the structure without planning specific paths for the robots. We nevertheless ensure that such paths will exist through the concept of a reachable abstract action. Next, we identify dependencies between the chosen abstract actions by checking for conflicts between single-agent paths to execute the actions and store the dependencies as an acyclic Action Dependency Graph. Finally, we iterate on the specific paths taken by robots using a low-level multi-agent pathfinding algorithm by suitable modifications to conflict-based search (CBS). We demonstrate our planner on 200 randomly generated structures built with three types of cuboidal blocks. 
+Implementation for the paper:
 
-# Installation
-## Dependencies
-A conda environment.yml is provided. Requires numpy, scipy, numba, networkx, pyyaml. Saving and loading data files require dill. Visualizations require matplotlib, meshcat, trimesh, and plotly.
+**Hierarchical Planning for the Cuboid Multi-Agent Collective Construction (Cuboid-MACC) Problem**
 
-The C++ extension modules use pybind11, which you will need to install: https://pybind11.readthedocs.io/en/stable/
+Accepted at the **2026 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS 2026)**.
 
-The C++ extension modules also use boost, specifically MultiArray, which will need to be installed: https://www.boost.org/
-## Compilation
-The high level planner relies on a compiled extension module to compute reachable abstract actions. The source code is in src/assembly/cpp. A Makefile is provided. 
+---
 
-You will need to update MACC_HOME with the correct path to the folder of this repository.
-You will need to update PYBIND_INCLUDE with the correct path to the pybind11 include folder.
-You will need to update PYTHON_INCLUDE with the correct path to the python include folder for your choice of python executable.
-You MAY need to update PYTHON_EXT_SUFFIX depending on your python version and platform.
+## Overview
 
-# Contents
-## Code
-The code is organized into 5 submodules: assembly, parallelization, path, utility, and visualize. data contains sample test structures.
+The Multi-Agent Collective Construction (MACC) problem studies how a team of mobile robots can cooperatively assemble large structures from simple building blocks. This repository presents **Cuboid-MACC**, which extends the original MACC formulation from unit cubic blocks to heterogeneous cuboid blocks. Supporting cuboid blocks allows the planner to represent richer structures, including hollow regions, bridges, cantilevers, roofs, and other overhanging features, while introducing new planning challenges arising from block orientation and carried-block collisions.
 
-### assembly
-assembly contains code related to the High-Level (Abstract Action) planner. It uses A* to find the shortest sequence of block placements and removals to build the structure. 
-Note the cpp subfolder, containing the c++ implementation of the incremental reachability calculations.
+To address these challenges, Cuboid-MACC uses a hierarchical planning framework consisting of:
 
-### parallelization
-parallelization contains code related to the interface between the high and low-level planners (that is, the computation of the action dependency graph, by interface.py's create_time_windows function). 
-The repeated calls to task allocation and multi agent path finding are also handled inside interface.py, by the compute_low_level_plan_with_assignment function
+1. High-level abstract action planning using A*
+2. Reachability analysis for abstract actions
+3. Action Dependency Graph (ADG) generation
+4. Multi-robot task allocation
+5. Low-level multi-agent path planning using a modified Conflict-Based Search (CBS)
 
-It also contains code to run the full pipeline in run_structures.py.
+This decomposition reduces the planning burden by separating abstract construction ordering from low-level multi-robot path planning, while checking reachability and collision constraints under the Cuboid-MACC model.
 
-### path
-path contains code for the Low-Level (Multi-Agent Path Finding) planning.
+---
 
-### utility
-contains support code for the rest of the package
+## Repository Structure
 
-### visualization
-contains code to use Meshcat to make 3D visualizations and animations of construction. See visualize3D's visualize_meshcat, visualize_world_meshcat, animate_high_level_plan, and meshcat_frames_to_video.
+```
+IROS26_CuboidMACC
+│
+├── src/                  Main implementation
+├── analysis_scripts/     Scripts for experiment analysis and statistics
+├── results/              Example experiment outputs
+├── legacy/               Previous development versions
+├── papers/               Manuscript-related files, if included
+├── environment.yml       Conda environment
+└── README.md
+```
 
-### data
-contains structure designs stored as npy files. They can be loaded by assembly.problem_node.Assembly_Node.from_npy (be sure to specify the correct world size).
+The primary implementation is located in `src`.
 
-## Test Data
-The 185 of the test structures from the paper are specified as .npy files in src/data/random_10x10x4_15blocks. The last 15 are the struct_10x10x4_n{i}.npy files in src/data/random.
+The source code is organized into the following modules:
 
-The structures named structure_prefix{i}.npy in a folder at path/to/folder (e.g. "struct_10x10x4_n{i}.npy" in "cuboidMACC-DARS24/src/data/random") can be processed programmatically by:
+| Folder | Description |
+|---------|-------------|
+| assembly | High-level planning and reachable abstract actions |
+| assembly/cpp | C++ acceleration modules for reachability computation |
+| parallelization | Action Dependency Graph generation, robot assignment, and interface between planning levels |
+| path | Low-level multi-agent path planning using modified CBS |
+| utility | Shared utility functions |
+| visualize | MeshCat visualization and animation utilities |
+| data | Benchmark structures used in the experiments |
+
+---
+
+## Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/junilm24/IROS26_CuboidMACC.git
+cd IROS26_CuboidMACC
+```
+
+Create the Conda environment:
+
+```bash
+conda env create -f environment.yml
+conda activate <environment_name>
+```
+
+The environment includes the required Python packages, including:
+
+- numpy
+- scipy
+- numba
+- networkx
+- pyyaml
+- dill
+- matplotlib
+- meshcat
+- trimesh
+- plotly
+
+---
+
+## Compiling the C++ Extension
+
+The high-level planner relies on a compiled C++ extension for efficient incremental reachability computation.
+
+The source code is located in:
+
+```text
+src/assembly/cpp
+```
+
+Before compilation, update the following variables in the Makefile:
+
+- `MACC_HOME`
+- `PYBIND_INCLUDE`
+- `PYTHON_INCLUDE`
+- `PYTHON_EXT_SUFFIX` if necessary
+
+The extension depends on:
+
+- pybind11
+- Boost MultiArray
+
+---
+
+## Running the Planner
+
+The complete planning pipeline is executed through the scripts in:
+
+```text
+src/parallelization
+```
+
+The provided scripts can be used to run benchmark experiments and analyze planner outputs. Additional usage examples will be added as the repository is updated.
+
+---
+
+## Benchmark Structures
+
+The repository contains benchmark structures used in the paper.
+
+Structure files are stored as NumPy arrays in:
+
+```text
+src/data/
+```
+
+The benchmark consists of 200 randomly generated structures containing multiple cuboid block types.
+
+Structures can be loaded directly using:
 
 ```python
-  from parallelization import  run_structures
-  x_dim=10
-  y_dim=10
-  z_dim=5
-  structure_prefix="struct_10x10x4_n"
-  num_structs=15#processes structures named f"{structure_prefix}{i}.npy" for i in range(num_structs)
-  time_limit=1000#seconds for a single structure after which we report timeout and move to the next one
-  run_structures.run_and_save("/path/to/folder","path/to/output_folder", structure_prefix,x_dim,y_dim,z_dim,num_structs,time_limit)
+Assembly_Node.from_npy(...)
 ```
+
+---
+
+## Visualization
+
+MeshCat is used to visualize construction sequences and generate animations.
+
+Visualization utilities are located in:
+
+```text
+src/visualize
+```
+
+The visualization module supports:
+
+- Construction sequence visualization
+- World visualization
+- MeshCat animations
+- Video generation from planning results
+
+---
+
+## Citation
+
+If you use this repository in your research, please cite:
+
+```bibtex
+% Citation will be added after publication.
+```
+
+---
+
+## Authors
+
+- Junil Min — Carnegie Mellon University
+- Shambhavi Singh — University of Michigan
+- Geordan Gutow — Michigan Technological University
+- Smrithi Lokesh Seramalanna — University of Pennsylvania
+- Bhaskar Vundurthy — Carnegie Mellon University
+- Jinwoo Choi — Carnegie Mellon University
+- Howie Choset — Carnegie Mellon University
