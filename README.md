@@ -30,7 +30,7 @@ This decomposition reduces the planning burden by separating abstract constructi
 IROS26_CuboidMACC
 │
 ├── src/                  Main implementation
-├── analysis_scripts/     Scripts for experiment analysis and statistics
+├── scripts/              Scripts for experiment analysis and statistics
 ├── results/              Example experiment outputs
 ├── legacy/               Previous development versions
 ├── papers/               Manuscript-related files, if included
