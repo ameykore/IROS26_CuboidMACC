@@ -1,9 +1,9 @@
-MACC_HOME=/home/ggutow/eclipse-workspace/macc_general_mamba
+MACC_HOME=/home/apkore/CuboidMACC-BCP2/IROS26_CuboidMACC
 SRC=${MACC_HOME}/src/assembly/cpp/
 INCLUDE=${MACC_HOME}/src/assembly/cpp/
 BUILD=${SRC}
-PYBIND_INCLUDE=/home/ggutow/eclipse-workspace/pybind11/include
-PYTHON_INCLUDE=/home/ggutow/miniconda3/envs/macc/include/python3.12
+PYBIND_INCLUDE=/home/apkore/miniconda3/envs/macc_bcp/lib/python3.12/site-packages/pybind11/include
+PYTHON_INCLUDE=/home/apkore/miniconda3/envs/macc_bcp/include/python3.12 
 
 OTHER_LIBS=-lm
 
